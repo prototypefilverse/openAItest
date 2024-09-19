@@ -76,9 +76,8 @@ public class OpenAIServlet extends HttpServlet {
                                     .getString("content");
         }
 
-        // JSPに結果を渡す
-        request.setAttribute("responseContent", resultText);
-        request.getRequestDispatcher("/result.jsp").forward(request, response);
+     // テキストとして結果を返す
+        response.getWriter().write(resultText);
     }
 
 }

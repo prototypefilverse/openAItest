@@ -1,18 +1,55 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<!DOCTYPE html>
 <html>
 <head>
+    <meta charset="UTF-8">
     <title>OpenAI API Test</title>
+    <link rel="stylesheet" type="text/css" href="styles/styles.css">
+
+    <script>
+    async function callOpenAI() {
+        const prompt = document.getElementById('prompt').value;
+        const responseElement = document.getElementById('response');
+        
+        responseElement.innerHTML = '応答を待っています...';  // 初期メッセージ
+        responseElement.classList.remove('show');  // 応答表示の初期化
+
+        const response = await fetch('openaiChat', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: 'prompt=' + encodeURIComponent(prompt)
+        });
+
+        if (response.ok) {
+            const result = await response.text();
+            responseElement.innerHTML = result;
+            responseElement.classList.add('show');  // アニメーションで表示
+        } else {
+            responseElement.innerHTML = 'エラーが発生しました。';
+            responseElement.classList.add('show');  // エラーもアニメーションで表示
+        }
+    }
+
+    </script>
+    
 </head>
+
 <body>
-    <h2>文章を丁寧な言葉遣いにしてくれるWEBアプリ</h2>
-    <p>OpenAIのAPIの実装を試すだけのページ。「（投稿された）文章を丁寧な言葉遣いに変換してください」と指示しています。</p>
-    <form action="openaiChat" method="post">
-        <label for="prompt">入力:</label>
-        <textarea id="prompt" name="prompt" rows="4" cols="50"></textarea>
-        <br><br>
-        <input type="submit" value="送信">
-    </form>
+    <div class="container">
+        <h2>丁寧な言葉遣いに変換するアプリ</h2>
+        <p>入力した文章を丁寧な言葉に変換するウェブアプリです。</p>
+        <form onsubmit="event.preventDefault(); callOpenAI();">
+            <label for="prompt">文章を入力してください:</label>
+            <textarea id="prompt" name="prompt"></textarea>
+            <input type="submit" value="AIに送る">
+        </form>
+        <div id="responseContainer">
+         <h3>結果</h3>
+         <div id="response"></div>
+        </div>
+    </div>
 </body>
 </html>
