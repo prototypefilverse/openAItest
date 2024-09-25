@@ -48,8 +48,9 @@
         </form>
         <div id="responseContainer">
          <h3>結果</h3>
-         <div id="response"></div>
+         <div id="response"></div>    
         </div>
+        <a href="history.jsp">履歴を見る</a>
     </div>
 </body>
 </html>

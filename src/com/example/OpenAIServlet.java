@@ -7,6 +7,9 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -15,6 +18,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.json.JSONObject;
+
 
 @WebServlet("/openaiChat")
 public class OpenAIServlet extends HttpServlet {
@@ -31,6 +35,12 @@ public class OpenAIServlet extends HttpServlet {
         response.setCharacterEncoding("UTF-8");
 
         String prompt = request.getParameter("prompt");
+        
+        // OpenAI API キーの確認
+        if (API_KEY == null || API_KEY.isEmpty()) {
+            response.getWriter().write("Error: API key is missing.");
+            return;
+        }
 
         // 丁寧な言葉遣いに変換する指示を追加
         String fullPrompt = "次の文章を丁寧な言葉遣いに変換してください: " + prompt;
@@ -55,16 +65,19 @@ public class OpenAIServlet extends HttpServlet {
         // レスポンスを取得
         int responseCode = connection.getResponseCode();
         StringBuilder responseContent = new StringBuilder();
+        // OpenAI APIからのレスポンスが成功（HTTP 200 OK）であるかどうかを確認
         if (responseCode == HttpURLConnection.HTTP_OK) {
             try (BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))) {
                 String line;
                 while ((line = br.readLine()) != null) {
                     responseContent.append(line.trim());
                 }
-            }
-        } else {
-            responseContent.append("Error: ").append(responseCode);
-        }
+             }
+          // エラーハンドリング  
+          } else {
+            response.getWriter().write("Error: OpenAI API responded with code " + responseCode);
+            return;
+          }
 
         // JSONレスポンスを解析
         String resultText = "No response";
@@ -74,11 +87,30 @@ public class OpenAIServlet extends HttpServlet {
                                     .getJSONObject(0)
                                     .getJSONObject("message")
                                     .getString("content");
+         }
+        
+        // データベースにプロンプトと応答を保存
+        try (Connection dbConnection = DatabaseConnection.getConnection()) {
+            if (dbConnection != null) {
+                String sql = "INSERT INTO prompt_history (prompt, response) VALUES (?, ?)";
+                try (PreparedStatement stmt = dbConnection.prepareStatement(sql)) {
+                    stmt.setString(1, prompt);
+                    stmt.setString(2, resultText);
+                    stmt.executeUpdate();
+                }
+             // データベースに接続できないエラーハンドリング   
+             } else {
+                response.getWriter().write("Error: Database connection failed.");
+                return;
+            }
+            
+         } catch (SQLException e) {
+            response.getWriter().write("Error: " + e.getMessage());
+            e.printStackTrace();
+            return;
         }
-
-     // テキストとして結果を返す
+        
+        // 結果をクライアントに送信
         response.getWriter().write(resultText);
-    }
-
+   }
 }
-
