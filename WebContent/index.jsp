@@ -11,7 +11,7 @@
     async function callOpenAI() {
         const prompt = document.getElementById('prompt').value;
         const responseElement = document.getElementById('response');
-        
+
         responseElement.innerHTML = '応答を待っています...';  // 初期メッセージ
         responseElement.classList.remove('show');  // 応答表示の初期化
 
@@ -34,21 +34,21 @@
     }
 
     </script>
-    
+
 </head>
 
 <body>
     <div class="container">
-        <h2>丁寧な言葉遣いに変換するアプリ</h2>
-        <p>入力した文章を丁寧な言葉に変換するウェブアプリです。</p>
+        <h2>AIと会話できるアプリ</h2>
+        <p>10回前の会話まで覚えています。</p>
         <form onsubmit="event.preventDefault(); callOpenAI();">
             <label for="prompt">文章を入力してください:</label>
             <textarea id="prompt" name="prompt"></textarea>
             <input type="submit" value="AIに送る">
         </form>
         <div id="responseContainer">
-         <h3>結果</h3>
-         <div id="response"></div>    
+         <h3>応答</h3>
+         <div id="response"></div>
         </div>
         <a href="history.jsp">履歴を見る</a>
     </div>

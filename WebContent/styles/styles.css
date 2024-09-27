@@ -68,7 +68,7 @@ input[type="submit"]:hover {
 }
 
 #responseContainer h3 {
-    font-size: 18px;
+    font-size: 16px;
     color: #333;
     margin-top: 0; /* 上部のスペースを削減 */
     margin-bottom: 10px;

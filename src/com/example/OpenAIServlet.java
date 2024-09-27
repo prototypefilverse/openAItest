@@ -9,6 +9,7 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import javax.servlet.ServletException;
@@ -17,6 +18,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 
@@ -42,8 +44,11 @@ public class OpenAIServlet extends HttpServlet {
             return;
         }
 
-        // 丁寧な言葉遣いに変換する指示を追加
-        String fullPrompt = "次の文章を丁寧な言葉遣いに変換してください: " + prompt;
+        // ここで直近の履歴をデータベースから取得
+        String recentHistory = getRecentHistory();
+
+        // プロンプトに履歴を追加
+        String fullPrompt = "以下は過去の会話履歴です。\n" + recentHistory + "\nこれに基づいて次の質問に答えてください: " + prompt;
 
         // OpenAI APIにリクエストを送信
         URL url = new URL("https://api.openai.com/v1/chat/completions");
@@ -54,7 +59,20 @@ public class OpenAIServlet extends HttpServlet {
         connection.setDoOutput(true);
 
         // JSONリクエストの作成
-        String jsonInputString = "{ \"model\": \"gpt-3.5-turbo\", \"messages\": [{\"role\": \"user\", \"content\": \"" + fullPrompt + "\"}] }";
+        // String jsonInputString = "{ \"model\": \"gpt-3.5-turbo\", \"messages\": [{\"role\": \"user\", \"content\": \"" + fullPrompt + "\"}] }";
+        // JSONリクエストの作成　修正案: エスケープや文字列の組み立てが問題になることがあるため、JSONオブジェクトを明示的に作成
+        JSONObject jsonRequest = new JSONObject();
+        jsonRequest.put("model", "gpt-3.5-turbo");
+        JSONArray messages = new JSONArray();
+        JSONObject message = new JSONObject();
+        message.put("role", "user");
+        message.put("content", fullPrompt);
+        messages.put(message);
+        jsonRequest.put("messages", messages);
+        String jsonInputString = jsonRequest.toString();
+        
+        // APIリクエストのログ確認用
+        System.out.println("Sending JSON Request: " + jsonInputString);
 
         // リクエストボディを送信
         try (OutputStream os = connection.getOutputStream()) {
@@ -113,4 +131,24 @@ public class OpenAIServlet extends HttpServlet {
         // 結果をクライアントに送信
         response.getWriter().write(resultText);
    }
+    
+    // 直近の会話履歴を取得するメソッドを追加
+    private String getRecentHistory() {
+        StringBuilder history = new StringBuilder();
+        try (Connection dbConnection = DatabaseConnection.getConnection()) {
+            if (dbConnection != null) {
+                String sql = "SELECT TOP 10 prompt, response FROM prompt_history ORDER BY created_at DESC";
+                try (PreparedStatement stmt = dbConnection.prepareStatement(sql);
+                     ResultSet rs = stmt.executeQuery()) {
+                    while (rs.next()) {
+                        history.append("ユーザー: ").append(rs.getString("prompt")).append("\n");
+                        history.append("AI: ").append(rs.getString("response")).append("\n");
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return history.toString();
+    }
 }
