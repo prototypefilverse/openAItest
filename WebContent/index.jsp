@@ -8,6 +8,7 @@
     <link rel="stylesheet" type="text/css" href="styles/styles.css">
 
     <script>
+    
     async function callOpenAI() {
         const prompt = document.getElementById('prompt').value;
         const responseElement = document.getElementById('response');
@@ -33,11 +34,29 @@
         }
     }
 
+    // 暫定　定期的にぼやきを取得して表示する
+    async function fetchMurmur() {
+        const murmurElement = document.getElementById('murmur');
+        const response = await fetch('murmur');
+        
+        if (response.ok) {
+            const result = await response.text();
+            murmurElement.innerHTML = result;
+        }
+    }
+
+    // 暫定　ページ読み込み後に一度だけぼやきを取得
+    window.onload = function() {
+        fetchMurmur();
+    };
+    
+
     </script>
 
 </head>
 
 <body>
+
     <div class="container">
         <h2>AIと会話できるアプリ</h2>
         <p>10回前の会話まで覚えています。</p>
@@ -52,5 +71,10 @@
         </div>
         <a href="history.jsp">履歴を見る</a>
     </div>
+    
+    <!-- 暫定　ぼやきを表示する要素 -->
+    <div id="murmur" class="murmur-container"></div>
+    
 </body>
+
 </html>
