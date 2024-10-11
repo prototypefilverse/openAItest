@@ -11,9 +11,10 @@
     async function callOpenAI() {
         const prompt = document.getElementById('prompt').value;
         const responseElement = document.getElementById('response');
-        
+
         responseElement.innerHTML = '応答を待っています...';  // 初期メッセージ
         responseElement.classList.remove('show');  // 応答表示の初期化
+
         const response = await fetch('openaiChat', {
             method: 'POST',
             headers: {
@@ -21,6 +22,7 @@
             },
             body: 'prompt=' + encodeURIComponent(prompt)
         });
+
         if (response.ok) {
             const result = await response.text();
             responseElement.innerHTML = result;
@@ -30,8 +32,9 @@
             responseElement.classList.add('show');  // エラーもアニメーションで表示
         }
     }
+
     </script>
-    
+
 </head>
 
 <body>
@@ -49,4 +52,6 @@
         </div>
         <a href="history.jsp">履歴を見る</a>
     </div>
+</body>
+</html>
 

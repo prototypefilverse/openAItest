@@ -1,7 +1,9 @@
 package com.example;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+
 public class DatabaseConnection {
 	
 	private static final String DRIVER_NAME = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
@@ -12,6 +14,7 @@ public class DatabaseConnection {
     try {	
 		Class.forName(DRIVER_NAME);
 		return DriverManager.getConnection(url);
+
     } catch (Exception e) {
         e.printStackTrace();
         return null;  
