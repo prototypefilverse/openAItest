@@ -53,5 +53,6 @@
         <a href="history.jsp">履歴を見る</a>
     </div>
 </body>
+
 </html>
 
